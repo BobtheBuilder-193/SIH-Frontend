@@ -7,17 +7,15 @@ import { Panel, PanelHeader } from '@/components/Panel'
 import { EmptyState } from '@/components/EmptyState'
 import { HelpPanel } from '@/components/HelpPanel'
 import { ImageCard } from '@/components/ImageCard'
-import { ImageIcon, CompassIcon } from '@/components/icons'
+import { ImageIcon } from '@/components/icons'
 import { GeospatialMapViewer } from '@/components/GeospatialMapViewer'
 import { UploadDropzone } from '@/features/upload/UploadDropzone'
 import { QueryComposer } from '@/features/analysis/QueryComposer'
 import { AnalysisStatusPanel } from '@/features/analysis/AnalysisStatusPanel'
 import { AnalysisSummaryPanel } from '@/features/analysis/AnalysisSummaryPanel'
-import { DemoSelector } from '@/features/demo/DemoSelector'
 import { useImageUpload } from '@/hooks/useImageUpload'
 import { useAnalysis } from '@/hooks/useAnalysis'
 import type { StartRole } from '@/pages/Landing'
-import type { DemoSample } from '@/types/demo'
 
 interface AppProps {
   /** How the visitor entered — picked on the landing page. Optional so App still renders standalone. */
@@ -27,12 +25,10 @@ interface AppProps {
 }
 
 export function App({ startRole, onChangeMode }: AppProps) {
-  const { images, addFiles, stageDemoImages, removeImage, clearImages } = useImageUpload()
+  const { images, addFiles, removeImage, clearImages } = useImageUpload()
   const { result, isAnalyzing, error, runQuery, reset } = useAnalysis()
   const [backendOnline, setBackendOnline] = useState<boolean | null>(null)
-  const [showDemoSelector, setShowDemoSelector] = useState(startRole === 'explore')
-  const [activeDemoId, setActiveDemoId] = useState<string | null>(null)
-  const [currentPrompt, setCurrentPrompt] = useState('')
+  const [currentPrompt] = useState('')
 
   useEffect(() => {
     apiClient
@@ -51,13 +47,6 @@ export function App({ startRole, onChangeMode }: AppProps) {
     )
   }
 
-  function handleSelectDemoSample(sample: DemoSample) {
-    setActiveDemoId(sample.id)
-    stageDemoImages(sample.images)
-    setCurrentPrompt(sample.defaultQuery)
-    reset()
-  }
-
   return (
     <Layout
       header={
@@ -69,39 +58,21 @@ export function App({ startRole, onChangeMode }: AppProps) {
       }
       main={
         <>
-          {/* Demo Scenario Selector (Master Prompt Section 21) */}
-          {(showDemoSelector || startRole === 'explore') && (
-            <DemoSelector
-              onSelectSample={handleSelectDemoSample}
-              activeSampleId={activeDemoId}
-            />
-          )}
-
           {/* Imagery Ingestion Panel */}
           <Panel>
             <PanelHeader
               title="Remote Sensing Imagery"
               subtitle="Drop single scenes, bi-temporal epochs, or Optical + SAR pairs"
               action={
-                <div className="flex items-center gap-2">
+                images.length > 0 ? (
                   <button
                     type="button"
-                    onClick={() => setShowDemoSelector((v) => !v)}
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-panel-raised)] px-2.5 py-1 text-xs font-medium text-[var(--color-accent)] transition-colors hover:border-[var(--color-accent)]/50"
+                    onClick={clearImages}
+                    className="text-xs text-[var(--color-text-muted)] underline decoration-[var(--color-border)] underline-offset-2 hover:text-[var(--color-error)]"
                   >
-                    <CompassIcon width={12} height={12} />
-                    <span>{showDemoSelector ? 'Hide Demo Datasets' : 'Explore Demo Datasets'}</span>
+                    Clear All
                   </button>
-                  {images.length > 0 && (
-                    <button
-                      type="button"
-                      onClick={clearImages}
-                      className="text-xs text-[var(--color-text-muted)] underline decoration-[var(--color-border)] underline-offset-2 hover:text-[var(--color-error)]"
-                    >
-                      Clear All
-                    </button>
-                  )}
-                </div>
+                ) : undefined
               }
             />
 
@@ -112,7 +83,7 @@ export function App({ startRole, onChangeMode }: AppProps) {
                 <EmptyState
                   icon={<ImageIcon width={18} height={18} />}
                   title="Nothing uploaded yet"
-                  description="Drop GeoTIFF, optical, multispectral, or SAR scenes above, or pick a demo dataset."
+                  description="Drop GeoTIFF, optical, multispectral, or SAR scenes above to begin analysis."
                 />
               ) : (
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">

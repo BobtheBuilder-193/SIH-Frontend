@@ -1,11 +1,9 @@
 import { SatelliteIcon } from './icons'
 import { StatusBadge } from './StatusBadge'
-import { apiMode } from '@/api'
 import type { StartRole } from '@/pages/Landing'
 
 const ROLE_LABEL: Record<StartRole, string> = {
   researcher: 'Researcher mode',
-  explore: 'Explore mode',
 }
 
 export function Header({
@@ -41,9 +39,6 @@ export function Header({
 
         <div className="flex items-center gap-2">
           {startRole && <StatusBadge kind="neutral" label={ROLE_LABEL[startRole]} />}
-          {apiMode === 'mock' && (
-            <StatusBadge kind="neutral" label="Demo mode" />
-          )}
           {backendOnline === null ? (
             <StatusBadge kind="pending" label="Checking backend" />
           ) : backendOnline ? (
@@ -57,7 +52,7 @@ export function Header({
               onClick={onChangeMode}
               className="text-xs text-[var(--color-text-muted)] underline decoration-[var(--color-border-strong)] underline-offset-2 hover:text-[var(--color-text-secondary)]"
             >
-              Change mode
+              Home
             </button>
           )}
         </div>

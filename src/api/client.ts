@@ -1,6 +1,5 @@
 import type { ImageMetadata, ImageValidation, UploadedImage } from '@/types/image'
 import type { AnalysisQuery, AnalysisResult } from '@/types/analysis'
-import type { DemoSample } from '@/types/demo'
 
 /**
  * SatQueryApiClient
@@ -20,8 +19,6 @@ export interface SatQueryApiClient {
   getAnalysis(analysisId: string): Promise<AnalysisResult>
 
   checkBackendStatus(): Promise<{ online: boolean; mode: 'mock' | 'real' }>
-
-  getDemoSamples(): Promise<DemoSample[]>
 
   downloadReport(analysisId: string): Promise<{ blob: Blob; filename: string }>
 }

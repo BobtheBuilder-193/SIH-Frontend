@@ -1,7 +1,6 @@
 import { useCallback, useRef, useState } from 'react'
 import { apiClient } from '@/api'
 import type { UploadedImage } from '@/types/image'
-import type { DemoImageSample } from '@/types/demo'
 
 let idCounter = 0
 function nextId() {
@@ -108,40 +107,6 @@ export function useImageUpload() {
     }
   }, [])
 
-  const stageDemoImages = useCallback((demoImages: DemoImageSample[]) => {
-    // Revoke any existing object URLs before clearing
-    for (const url of objectUrls.current) {
-      URL.revokeObjectURL(url)
-    }
-    objectUrls.current.clear()
-
-    const staged: UploadedImage[] = demoImages.map((demo) => ({
-      id: demo.id,
-      previewUrl: demo.url,
-      remotePreviewUrl: demo.url,
-      stage: 'ready',
-      progress: 100,
-      metadata: {
-        filename: demo.filename,
-        fileType: 'image/tiff',
-        sizeBytes: 10485760, // 10MB nominal
-        width: demo.dimensions.width,
-        height: demo.dimensions.height,
-        bandCount: demo.modality === 'sar' ? 1 : demo.modality === 'multispectral' ? 8 : 3,
-        modality: demo.modality,
-        crs: demo.crs,
-        acquisitionDate: demo.acquisitionDate,
-        sensor: demo.sensor,
-      },
-      validation: {
-        status: 'valid',
-        issues: [],
-      },
-    }))
-
-    setImages(inferRoles(staged))
-  }, [])
-
   const removeImage = useCallback((id: string) => {
     setImages((prev) => {
       const target = prev.find((img) => img.id === id)
@@ -161,5 +126,5 @@ export function useImageUpload() {
     setImages([])
   }, [])
 
-  return { images, addFiles, stageDemoImages, removeImage, clearImages }
+  return { images, addFiles, removeImage, clearImages }
 }

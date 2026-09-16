@@ -1,7 +1,6 @@
 import type { SatQueryApiClient } from '../client'
 import type { ImageMetadata, ImageValidation, ImageModality } from '@/types/image'
 import type { AnalysisResult, ExecutionStep } from '@/types/analysis'
-import type { DemoSample } from '@/types/demo'
 import type {
   BoundingBoxEvidence,
   ChangeMapEvidence,
@@ -38,119 +37,6 @@ async function readImageDimensions(file: File): Promise<{ width?: number; height
     return {}
   }
 }
-
-// Built-in Demo Scenarios for Master Prompt Section 21 & 33
-export const MOCK_DEMO_SAMPLES: DemoSample[] = [
-  {
-    id: 'urban-growth-sar',
-    title: 'Urban Expansion & SAR Corroboration',
-    tagline: 'The SIH Killer Query Workflow',
-    description:
-      'Bi-temporal optical comparison coupled with Sentinel-1 SAR backscatter verification to confirm permanent urban development.',
-    targetWorkflow: 'cross_modal',
-    images: [
-      {
-        id: 'demo-opt-2022',
-        filename: 'Sentinel2_Urban_2022_T1.tif',
-        url: 'https://images.unsplash.com/photo-1524813686514-a57563d77d66?auto=format&fit=crop&w=1200&q=80',
-        modality: 'optical',
-        dimensions: { width: 2048, height: 2048 },
-        acquisitionDate: '2022-03-15',
-        sensor: 'Sentinel-2 MSI',
-        crs: 'EPSG:4326',
-      },
-      {
-        id: 'demo-opt-2024',
-        filename: 'Sentinel2_Urban_2024_T2.tif',
-        url: 'https://images.unsplash.com/photo-1477959858617-67f30bc75b82?auto=format&fit=crop&w=1200&q=80',
-        modality: 'optical',
-        dimensions: { width: 2048, height: 2048 },
-        acquisitionDate: '2024-03-18',
-        sensor: 'Sentinel-2 MSI',
-        crs: 'EPSG:4326',
-      },
-      {
-        id: 'demo-sar-2024',
-        filename: 'Sentinel1_SAR_C_Band_2024.tif',
-        url: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1200&q=80',
-        modality: 'sar',
-        dimensions: { width: 2048, height: 2048 },
-        acquisitionDate: '2024-03-20',
-        sensor: 'Sentinel-1 C-SAR',
-        crs: 'EPSG:4326',
-      },
-    ],
-    suggestedQueries: [
-      'Did urban development increase between these dates, and can SAR support the result?',
-      'What changed between these images?',
-      'Identify permanent structural changes corroborated by radar.',
-    ],
-    defaultQuery:
-      'Did urban development increase between these dates, and can SAR support the result?',
-  },
-  {
-    id: 'port-grounding',
-    title: 'Port Facility Infrastructure Grounding',
-    tagline: 'Visual Grounding & Spatial Detection',
-    description:
-      'Detects, segments, and bounds maritime logistics assets, storage facilities, and transport vessels.',
-    targetWorkflow: 'grounding',
-    images: [
-      {
-        id: 'demo-port-opt',
-        filename: 'Port_Logistics_Hub_RGB.tif',
-        url: 'https://images.unsplash.com/photo-1578575437130-527eed3abbec?auto=format&fit=crop&w=1200&q=80',
-        modality: 'optical',
-        dimensions: { width: 3840, height: 2160 },
-        acquisitionDate: '2024-05-10',
-        sensor: 'WorldView-3',
-        crs: 'EPSG:3857',
-      },
-    ],
-    suggestedQueries: [
-      'Where are the buildings and storage tanks?',
-      'Locate maritime vessels docked in the harbour.',
-      'What is visible in this image?',
-    ],
-    defaultQuery: 'Where are the buildings and storage tanks?',
-  },
-  {
-    id: 'flood-change',
-    title: 'Post-Flood Surface Water Extent',
-    tagline: 'Bi-Temporal Change Detection',
-    description:
-      'Compares pre-flood baseline with post-monsoon imagery to delineate inundation boundaries and affected hectares.',
-    targetWorkflow: 'change_detection',
-    images: [
-      {
-        id: 'demo-flood-pre',
-        filename: 'River_Basin_Pre_Flood.tif',
-        url: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1200&q=80',
-        modality: 'multispectral',
-        dimensions: { width: 1920, height: 1080 },
-        acquisitionDate: '2023-06-01',
-        sensor: 'Landsat-9 OLI-2',
-        crs: 'EPSG:4326',
-      },
-      {
-        id: 'demo-flood-post',
-        filename: 'River_Basin_Post_Inundation.tif',
-        url: 'https://images.unsplash.com/photo-1547683905-f686c993aae5?auto=format&fit=crop&w=1200&q=80',
-        modality: 'multispectral',
-        dimensions: { width: 1920, height: 1080 },
-        acquisitionDate: '2023-08-14',
-        sensor: 'Landsat-9 OLI-2',
-        crs: 'EPSG:4326',
-      },
-    ],
-    suggestedQueries: [
-      'What changed between these images?',
-      'Calculate total inundated area in hectares.',
-      'What is visible in this image?',
-    ],
-    defaultQuery: 'What changed between these images?',
-  },
-]
 
 let analysisCounter = 0
 const storedQueries = new Map<string, { prompt: string; imageIds: string[] }>()
@@ -613,11 +499,6 @@ export const mockClient: SatQueryApiClient = {
   async checkBackendStatus() {
     await delay(120)
     return { online: true, mode: 'mock' }
-  },
-
-  async getDemoSamples() {
-    await delay(80)
-    return MOCK_DEMO_SAMPLES
   },
 
   async downloadReport(analysisId) {

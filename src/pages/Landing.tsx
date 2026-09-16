@@ -1,6 +1,6 @@
-import { SatelliteIcon, ScanIcon, CompassIcon } from '@/components/icons'
+import { SatelliteIcon, ScanIcon } from '@/components/icons'
 
-export type StartRole = 'researcher' | 'explore'
+export type StartRole = 'researcher'
 
 interface LandingProps {
   /** Called when the visitor picks how they want to proceed. */
@@ -15,17 +15,10 @@ const roles: {
 }[] = [
   {
     id: 'researcher',
-    title: 'Researcher',
+    title: 'Start Analysis',
     description:
       'Upload your own imagery and run full evidence-backed analysis, with execution traces and technical detail exposed.',
     icon: ScanIcon,
-  },
-  {
-    id: 'explore',
-    title: 'Explore',
-    description:
-      'Try GeoLens on sample scenes in demo mode — no upload, no sign-in, just a feel for what it does.',
-    icon: CompassIcon,
   },
 ]
 
@@ -60,15 +53,15 @@ export function Landing({ onSelectRole }: LandingProps) {
 
           <div className="mt-10">
             <p className="text-sm text-[var(--color-text-secondary)]">
-              How do you want to start?
+              Ready to analyze satellite imagery?
             </p>
-            <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="mt-4 max-w-lg">
               {roles.map((role) => (
                 <button
                   key={role.id}
                   type="button"
                   onClick={() => onSelectRole(role.id)}
-                  className="group flex flex-col items-start gap-2.5 rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)] p-5 text-left transition-colors hover:border-[var(--color-accent)]/50 hover:bg-[var(--color-panel-raised)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-accent)]"
+                  className="group flex w-full flex-col items-start gap-2.5 rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel)] p-5 text-left transition-colors hover:border-[var(--color-accent)]/50 hover:bg-[var(--color-panel-raised)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-accent)]"
                 >
                   <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--color-border-strong)] bg-[var(--color-panel-raised)] text-[var(--color-accent)] transition-colors group-hover:border-[var(--color-accent)]/40">
                     <role.icon width={16} height={16} />
@@ -86,7 +79,7 @@ export function Landing({ onSelectRole }: LandingProps) {
         </div>
 
         <p className="pb-2 text-xs text-[var(--color-text-muted)]">
-          Evidence-first analysis for satellite imagery. You can switch modes later.
+          Evidence-first analysis for satellite imagery.
         </p>
       </div>
     </div>
