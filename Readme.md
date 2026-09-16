@@ -1,127 +1,72 @@
-# SatQuery AI (GeoLens) — Multimodal Remote-Sensing Interface
+# GeoLens — Frontend
 
-[![Smart India Hackathon 2026](https://img.shields.io/badge/SIH-2026-blue.svg)](https://www.sih.gov.in/)
-[![Problem Statement](https://img.shields.io/badge/Problem%20Statement-SIH26167-orange.svg)]()
-[![React](https://img.shields.io/badge/React-19.2-61dafb.svg?logo=react&logoColor=black)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-6.0-3178c6.svg?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Vite](https://img.shields.io/badge/Vite-8.3-646cff.svg?logo=vite&logoColor=white)](https://vite.dev/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4.3-38bdf8.svg?logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
+Evidence-first, agentic interface for multimodal remote-sensing image analysis.
+Built for Smart India Hackathon 2026, Problem Statement SIH26167.
 
-> **Read the ground truth, straight from orbit.**  
-> SatQuery AI is an evidence-first, agentic interface for multimodal remote-sensing imagery analysis. Built strictly as an independent client to SatQuery's FastAPI + Pydantic backend.
+This is **Part 1 of 4**: foundation, architecture, and core UI. It is a fully
+independent frontend client — it does not import backend code, invoke models,
+or reproduce any analysis logic. It talks to a backend only through the
+`SatQueryApiClient` interface in `src/api/client.ts`.
 
----
+## What's implemented in this part
 
-## 🌟 Overview & Master Prompt Compliance
+- Project scaffold: Vite + React + TypeScript + Tailwind CSS v4
+- Application shell: header (branding, backend status, demo mode indicator),
+  asymmetric two-column workspace (imagery + query on the left, status +
+  help on the right)
+- Upload flow: drag-and-drop + file picker, per-image state machine
+  (uploading → processing → ready / failed), metadata display, validation
+  display (valid / warning / invalid) sourced entirely from the API layer
+- Query composer: natural-language input with example prompts, no forced
+  model/pipeline selection
+- Analysis status: execution trace panel, expandable technical evidence
+  section (collapsed by default — the default experience stays simple)
+- Full component state coverage: empty, loading, success, warning, error
+  for every major surface
+- Mock API layer (`src/api/mock/`) so the app is fully demoable with zero
+  backend — swap to a real backend by implementing `SatQueryApiClient` in
+  `src/api/real/` and flipping `VITE_API_MODE=real`. See `src/api/README.md`.
 
-SatQuery AI enables earth-observation analysts, researchers, and decision-makers to:
-1. **Upload remote-sensing imagery** (GeoTIFF, optical, SAR, multispectral).
-2. **Ask natural-language questions** without forced pipeline or model selection.
-3. **Allow the backend agent** to determine whether to run VQA, spatial grounding, change detection, or multi-sensor cross-modal fusion.
-4. **Follow the observable execution trace** with step-by-step verified events.
-5. **Receive a visually dominant answer** with structured, calibrated confidence.
-6. **Inspect supporting visual evidence** (bounding boxes, bi-temporal split sliders, change heatmaps, Recharts metrics, and optical/SAR agreement).
-7. **Download analysis reports** as downloadable artifacts.
-8. **Experience the workflow in Demo Mode**, including the primary killer query.
+## Landing page
 
----
+`src/pages/Landing.tsx` is the entry screen: logo lockup, headline, and a
+choice between two ways to proceed — **Researcher** (full upload + analysis
+flow) and **Explore** (sample-scene demo mode).
 
-## ✨ Key Features & Specialized Workspaces
+`src/Root.tsx` is the gate that connects it to the main workspace: it holds
+which role was picked and renders `Landing` until one is chosen, then renders
+`App` with that role. `main.tsx` mounts `Root` instead of `App` directly.
+`App` shows the picked mode as a badge in the header (`Header.tsx`), next to
+a "Change mode" link that clears the selection and returns to the landing
+page.
 
-### 1. Interactive Landing & Role Gate
-- Orbital SVG path animation visualizer (accessible and reduced-motion compliant).
-- Entry selection between **Researcher Mode** (full upload & technical inspection) and **Explore Mode** (sample scene exploration).
+## Not yet built (Parts 2–4)
 
-### 2. The "Killer Query" Cross-Modal Workflow
-- Full UI realization of the SIH primary demonstration:
-  > *"Did urban development increase between these dates, and can SAR support the result?"*
-- Synthesizes bi-temporal optical change with Sentinel-1 SAR microwave backscatter.
-- Displays the **Agreement / Disagreement Banner** (`agree`, `disagree`, or `inconclusive` — never styled as a failure).
+Change-detection maps, grounding/bounding-box overlays, SAR/optical
+comparison views, the fuller evidence viewer, report generation, and real
+backend wiring — the folders for these already exist under
+`src/features/` so later parts extend rather than restructure.
 
-### 3. Spatial Grounding & Detection (`features/grounding/`)
-- Responsive `<BoundingBoxOverlay />` mapping backend normalized coordinates `[ymin, xmin, ymax, xmax]` directly onto image pixels.
-- Category filtering, detection certainty percentages, and localized object inspector.
+## Running it
 
-### 4. Bi-Temporal Change Detection (`features/change-detection/`)
-- `<BeforeAfterViewer />` supporting **Interactive Split Slider**, **Side-by-Side Comparison**, and **Change Mask Overlay**.
-- Quantitative metric visualization powered by **Recharts** (`<ChangeMetricsChart />`).
-
-### 5. Calibrated Confidence System (`features/analysis/ConfidenceCard.tsx`)
-- Explicitly handles `available`, `unavailable`, `calibrated`, `model-derived`, and `evidence-derived` states.
-- Cleanly renders "Confidence unavailable" with backend explanations when applicable. Never fabricates scores.
-
-### 6. Interactive Demo Mode (`features/demo/DemoSelector.tsx`)
-- One-click staging for pre-configured datasets:
-  - **Urban Expansion & SAR Corroboration** (The Killer Query)
-  - **Port Facility Infrastructure Grounding**
-  - **Post-Flood Surface Water Extent**
-
----
-
-## 🛠️ Technology Stack
-
-| Layer | Technologies |
-|---|---|
-| **Core Framework** | React 19 (`react`, `react-dom`) |
-| **Language** | TypeScript 6 (strict type checking, contract-first schemas) |
-| **Bundler & Build Tool** | Vite 8 + `@vitejs/plugin-react` |
-| **Styling & Theme** | Tailwind CSS v4 + `@tailwindcss/vite` |
-| **Data & Spatial Visualization** | Recharts 3.10, Leaflet 1.9, React-Leaflet 5.0 |
-| **Icons** | Custom standalone SVG stroke icons (no heavy icon font) |
-
----
-
-## 🚀 Quick Start Guide
-
-### Installation & Execution
-
-1. Navigate to the frontend project directory:
-   ```bash
-   cd geolens-frontend-landing/satquery-ai
-   ```
-
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-
-3. Configure environment variables:
-   ```bash
-   cp .env.example .env
-   ```
-
-4. Launch the local development server:
-   ```bash
-   npm run dev
-   ```
-
-5. Open your browser at `http://localhost:5173`.
-
----
-
-## ⚙️ Environment Variables
-
-```env
-# Base URL of the FastAPI Backend
-VITE_API_BASE_URL=http://localhost:8000
-
-# API Mode: "mock" (offline in-browser simulator) or "real" (live HTTP backend)
-VITE_API_MODE=mock
+```bash
+npm install
+cp .env.example .env
+npm run dev
 ```
 
----
+Runs entirely on the mock API by default — no backend required to see the
+full upload → ask → analyze flow.
 
-## 📁 Project Documentation & Contracts
+## Design system
 
-- [`Codebase.md`](file:///c:/Users/PC/Desktop/SIH%20FRONTEND/Codebase.md) — Exhaustive codebase technical reference.
-- [`Architecture.md`](file:///c:/Users/PC/Desktop/SIH%20FRONTEND/Architecture.md) — System architecture, state machines, and sequence diagrams.
-- [`docs/FRONTEND_ARCHITECTURE.md`](file:///c:/Users/PC/Desktop/SIH%20FRONTEND/docs/FRONTEND_ARCHITECTURE.md) — Master architecture specification.
-- [`docs/FRONTEND_COMPONENT_MAP.md`](file:///c:/Users/PC/Desktop/SIH%20FRONTEND/docs/FRONTEND_COMPONENT_MAP.md) — Reusable & feature component catalog.
-- [`docs/FRONTEND_INTEGRATION.md`](file:///c:/Users/PC/Desktop/SIH%20FRONTEND/docs/FRONTEND_INTEGRATION.md) — Backend integration guide and REST endpoints.
-- [`docs/FRONTEND_API_MISMATCHES.md`](file:///c:/Users/PC/Desktop/SIH%20FRONTEND/docs/FRONTEND_API_MISMATCHES.md) — API discrepancy and contract validation log.
-
----
-
-## 🤝 Smart India Hackathon 2026
-
-Developed for Problem Statement **SIH26167**. All rights reserved.
+- Base: deep petrol teal-navy (`#0f2229`), evoking optics glass and ocean
+  seen from orbit — panels lift with `#16303a` / `#1c3944` and soft
+  shadows, not hairline borders
+- Accent: warm terracotta (`#e08a5b`), glowing with confident contrast
+  against the deep teal; secondary data color is a warm sand
+  (`#e3c581`) — used for real technical values, never for cheerful UI
+  chrome
+- Type: IBM Plex Sans for UI, IBM Plex Mono reserved for genuinely
+  technical values (file sizes, CRS, coordinates, evidence numbers)
+- Status is always icon + color + text, never color alone
