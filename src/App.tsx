@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { apiClient } from '@/api'
 import { Layout } from '@/components/Layout'
 import { Header } from '@/components/Header'
@@ -24,18 +24,34 @@ interface AppProps {
   onChangeMode?: () => void
 }
 
-export function App({ startRole, onChangeMode }: AppProps) {
+export function App({ onChangeMode }: AppProps) {
   const { images, addFiles, removeImage, clearImages } = useImageUpload()
   const { result, isAnalyzing, error, runQuery, reset } = useAnalysis()
   const [backendOnline, setBackendOnline] = useState<boolean | null>(null)
+  const [backendLatency, setBackendLatency] = useState<number | null>(null)
   const [currentPrompt] = useState('')
 
-  useEffect(() => {
-    apiClient
-      .checkBackendStatus()
-      .then((status) => setBackendOnline(status.online))
-      .catch(() => setBackendOnline(false))
+  const checkConnection = useCallback(async () => {
+    const start = performance.now()
+    try {
+      const status = await apiClient.checkBackendStatus()
+      setBackendOnline(status.online)
+      setBackendLatency(status.online ? Math.round(performance.now() - start) : null)
+    } catch {
+      setBackendOnline(false)
+      setBackendLatency(null)
+    }
   }, [])
+
+  useEffect(() => {
+    checkConnection()
+    const interval = setInterval(checkConnection, 5000)
+    window.addEventListener('focus', checkConnection)
+    return () => {
+      clearInterval(interval)
+      window.removeEventListener('focus', checkConnection)
+    }
+  }, [checkConnection])
 
   const readyImages = images.filter((img) => img.stage === 'ready')
   const hasReadyImages = readyImages.length > 0
@@ -52,7 +68,8 @@ export function App({ startRole, onChangeMode }: AppProps) {
       header={
         <Header
           backendOnline={backendOnline}
-          startRole={startRole}
+          backendLatency={backendLatency}
+          onRefreshStatus={checkConnection}
           onChangeMode={onChangeMode}
         />
       }

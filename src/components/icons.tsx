@@ -153,3 +153,23 @@ export function GridIcon(props: IconProps) {
     </svg>
   )
 }
+
+export function SettingsIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <circle cx="8" cy="8" r="2.5" />
+      <path d="M8 1.5v1.2M8 13.3v1.2M1.5 8h1.2M13.3 8h1.2M3.4 3.4l.9.9M11.7 11.7l.9.9M3.4 12.6l.9-.9M11.7 4.3l.9-.9" />
+    </svg>
+  )
+}
+
+export function RefreshIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M14 2v4h-4" />
+      <path d="M2 14v-4h4" />
+      <path d="M3.51 6a6 6 0 0 1 9.4-1.28L14 6M2 10l1.09 1.28A6 6 0 0 0 12.49 10" />
+    </svg>
+  )
+}
+

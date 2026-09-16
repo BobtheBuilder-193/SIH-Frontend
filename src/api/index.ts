@@ -1,21 +1,65 @@
 import type { SatQueryApiClient } from './client'
 import { mockClient } from './mock/mockClient'
+import { realClient } from './real/realClient'
+import { getApiBaseUrl, setApiBaseUrl, resetApiBaseUrl } from './config'
 
-const mode = (import.meta.env.VITE_API_MODE ?? 'mock') as 'mock' | 'real'
+export { getApiBaseUrl, setApiBaseUrl, resetApiBaseUrl }
 
-function createClient(): SatQueryApiClient {
-  if (mode === 'real') {
-    // Real backend integration lands in a later part, once
-    // /docs/API_CONTRACT.md is available to build against. Falling back
-    // to the mock keeps the app usable rather than throwing at startup.
-    console.warn(
-      '[GeoLens] VITE_API_MODE=real but no real client is wired up yet — using mock client.',
-    )
-    return mockClient
-  }
-  return mockClient
+let cachedBackendOnline: boolean | null = null
+
+export const apiClient: SatQueryApiClient = {
+  async checkBackendStatus() {
+    const status = await realClient.checkBackendStatus()
+    cachedBackendOnline = status.online
+    return status
+  },
+
+  async uploadImage(file, onProgress) {
+    if (cachedBackendOnline) {
+      try {
+        return await realClient.uploadImage(file, onProgress)
+      } catch (err) {
+        console.warn('[GeoLens] Real upload failed, falling back to local simulation:', err)
+        return mockClient.uploadImage(file, onProgress)
+      }
+    }
+    return mockClient.uploadImage(file, onProgress)
+  },
+
+  async submitQuery(query) {
+    if (cachedBackendOnline) {
+      try {
+        return await realClient.submitQuery(query)
+      } catch (err) {
+        console.warn('[GeoLens] Real query failed, falling back to local simulation:', err)
+        return mockClient.submitQuery(query)
+      }
+    }
+    return mockClient.submitQuery(query)
+  },
+
+  async getAnalysis(analysisId) {
+    if (cachedBackendOnline) {
+      try {
+        return await realClient.getAnalysis(analysisId)
+      } catch {
+        return mockClient.getAnalysis(analysisId)
+      }
+    }
+    return mockClient.getAnalysis(analysisId)
+  },
+
+  async downloadReport(analysisId) {
+    if (cachedBackendOnline) {
+      try {
+        return await realClient.downloadReport(analysisId)
+      } catch {
+        return mockClient.downloadReport(analysisId)
+      }
+    }
+    return mockClient.downloadReport(analysisId)
+  },
 }
 
-export const apiClient = createClient()
-export const apiMode = mode
+export const apiMode = 'dynamic'
 export type { SatQueryApiClient } from './client'
