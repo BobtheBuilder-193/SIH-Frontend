@@ -209,9 +209,10 @@ export const mockClient: SatQueryApiClient = {
 
     const promptLower = query.prompt.toLowerCase()
     const isKillerQuery =
+      promptLower.includes('optical and sar') ||
+      promptLower.includes('built-up and water') ||
       promptLower.includes('urban') ||
       promptLower.includes('sar') ||
-      promptLower.includes('increase') ||
       promptLower.includes('support')
 
     const traceLabels = isKillerQuery
@@ -223,7 +224,7 @@ export const mockClient: SatQueryApiClient = {
           'Evaluating cross-modal sensor agreement',
           'Synthesizing grounded evidence & metrics',
         ]
-      : promptLower.includes('where') || promptLower.includes('building') || promptLower.includes('detect')
+      : promptLower.includes('highlight') || promptLower.includes('water') || promptLower.includes('where') || promptLower.includes('building') || promptLower.includes('detect')
         ? [
             'Ingesting scene spatial footprint',
             'Parsing visual grounding intent',
@@ -259,8 +260,15 @@ export const mockClient: SatQueryApiClient = {
     const stored = storedQueries.get(analysisId)
     const prompt = stored?.prompt.toLowerCase() ?? ''
 
-    // 1. Killer Query: Cross-Modal SAR + Optical Urban Growth
-    if (prompt.includes('urban') || prompt.includes('sar') || prompt.includes('support')) {
+    // 1. Cross-Modal SAR + Optical / Built-up & Urban Analysis (Query 4, 5, and Killer Query)
+    if (
+      prompt.includes('optical and sar') ||
+      prompt.includes('built-up and water') ||
+      prompt.includes('increased, decreased') ||
+      prompt.includes('urban') ||
+      prompt.includes('sar') ||
+      prompt.includes('support')
+    ) {
       const trace: ExecutionStep[] = [
         { id: 'step-0', label: 'Validating bi-temporal & SAR scenes', status: 'done' },
         { id: 'step-1', label: 'Aligning coordinate reference systems (EPSG:4326)', status: 'done' },
@@ -374,7 +382,75 @@ export const mockClient: SatQueryApiClient = {
       return result
     }
 
-    // 2. Grounding Query (Where are the buildings / objects)
+    // 2. Water Body Grounding Query (Query 2)
+    if (prompt.includes('water') || prompt.includes('highlight')) {
+      const trace: ExecutionStep[] = [
+        { id: 'step-0', label: 'Ingesting scene spatial footprint', status: 'done' },
+        { id: 'step-1', label: 'Parsing water body grounding intent', status: 'done' },
+        { id: 'step-2', label: 'Extracting Normalized Difference Water Index (NDWI)', status: 'done' },
+        { id: 'step-3', label: 'Delineating shoreline & surface boundaries', status: 'done' },
+        { id: 'step-4', label: 'Applying spatial polygon bounding', status: 'done' },
+        { id: 'step-5', label: 'Calibrating geospatial coordinates', status: 'done' },
+      ]
+
+      const boxes: BoundingBoxEvidence[] = [
+        {
+          id: 'box-water-1',
+          type: 'bounding_box',
+          label: 'Water Body (Inundation Basin)',
+          sourceImageId: stored?.imageIds[0] ?? 'img-1',
+          box: [0.15, 0.12, 0.78, 0.68], // ymin, xmin, ymax, xmax
+          category: 'Water Body',
+          confidence: 0.97,
+          color: '#38bdf8',
+        },
+      ]
+
+      const numEvidence: NumericalEvidence = {
+        id: 'ev-water-metric',
+        type: 'numerical',
+        label: 'Water Body Surface Extent',
+        value: 142.5,
+        unit: 'Hectares',
+        series: [
+          { name: 'Open Water', value: 142.5 },
+          { name: 'Wetland Buffer', value: 24.0 },
+        ],
+      }
+
+      return {
+        id: analysisId,
+        queryId: 'query-water-grounding',
+        status: 'succeeded',
+        task: 'grounding',
+        answer:
+          'Successfully highlighted and localized the primary water body (inland reservoir / coastal basin) occupying 142.5 hectares in the central-western sector with 97% confidence.',
+        summary:
+          'Successfully highlighted and localized the primary water body (inland reservoir / coastal basin) occupying 142.5 hectares in the central-western sector with 97% confidence.',
+        confidence: {
+          status: 'available',
+          score: 0.97,
+          method: 'model-derived',
+          explanation: 'NDWI spectral absorption matched with radar zero-backscatter specular reflection.',
+        },
+        executionTrace: trace,
+        evidence: [...boxes, numEvidence],
+        warnings: [],
+        technicalDetails: {
+          modelUsed: 'GeoGround-Water-VLM',
+          processingTimeMs: 760,
+          crs: 'EPSG:4326',
+        },
+        report: {
+          available: true,
+          downloadUrl: `/reports/${analysisId}.pdf`,
+          format: 'pdf',
+          filename: `Water_Body_Grounding_${analysisId}.pdf`,
+        },
+      }
+    }
+
+    // 3. Grounding Query (Where are the buildings / objects)
     if (prompt.includes('where') || prompt.includes('building') || prompt.includes('detect') || prompt.includes('tank')) {
       const trace: ExecutionStep[] = [
         { id: 'step-0', label: 'Ingesting scene spatial footprint', status: 'done' },

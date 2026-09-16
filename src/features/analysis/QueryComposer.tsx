@@ -2,10 +2,11 @@ import { useEffect, useState } from 'react'
 import { AnalyzeButton } from './AnalyzeButton'
 
 const EXAMPLE_QUERIES = [
-  'What is visible in this image?',
-  'Where are the buildings?',
-  'What changed between these images?',
-  'Did urban development increase between these dates, and can SAR support the result?',
+  'Describe the land-cover and major objects visible in this image.',
+  'Highlight the water body referred to in the query.',
+  'What changed between these two dates, and where did the change occur?',
+  'Use the optical and SAR images together to identify built-up and water-covered regions.',
+  'Has the built-up area increased, decreased, or remained unchanged?',
 ]
 
 interface QueryComposerProps {
